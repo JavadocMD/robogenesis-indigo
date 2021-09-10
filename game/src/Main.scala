@@ -16,21 +16,22 @@ final case class GameData(
 @JSExportTopLevel("IndigoGame")
 object Main extends IndigoGame[BootData, GameData, Unit, Unit] {
 
+  // Screen size. (Hard-coded for this game.)
+  val vw = 1200
+  val vh = 800
+
   def initialScene(bootData: BootData): Option[SceneName] = None
 
   def scenes(bootData: BootData): NonEmptyList[Scene[GameData, Unit, Unit]] = NonEmptyList {
-    GameScene(bootData.viewport)
+    GameScene
   }
 
   val eventFilters: EventFilters = EventFilters.Permissive
 
   def boot(flags: Map[String, String]): Outcome[BootResult[BootData]] = Outcome {
     val assetPath = flags.getOrElse("assetPath", "")
-    val vw        = flags.get("vw").map(_.toInt).getOrElse(1200)
-    val vh        = flags.get("vh").map(_.toInt).getOrElse(800)
     val viewport  = GameViewport(vw, vh)
-
-    val data = BootData(assetPath, viewport)
+    val data      = BootData(assetPath, viewport)
     val config = GameConfig(
       clearColor = RGBA.Black,
       frameRate = 60,
@@ -61,7 +62,8 @@ object Main extends IndigoGame[BootData, GameData, Unit, Unit] {
     Outcome(SceneUpdateFragment.empty)
 }
 
-class GameScene(viewport: GameViewport) extends Scene[GameData, Unit, Unit] {
+object GameScene extends Scene[GameData, Unit, Unit] {
+  import Main.{vw, vh}
 
   type SceneModel     = Unit
   type SceneViewModel = Unit
@@ -72,9 +74,9 @@ class GameScene(viewport: GameViewport) extends Scene[GameData, Unit, Unit] {
   val eventFilters: EventFilters      = EventFilters.Permissive
 
   val subSystems: Set[SubSystem] = Set(
-    Belt(viewport.height - 325, -100),
-    Belt(viewport.height - 525, -100),
-    Belt(viewport.height - 725, -100)
+    Belt(75),
+    Belt(275),
+    Belt(475)
   )
 
   def updateModel(context: FrameContext[GameData], model: Unit): GlobalEvent => Outcome[Unit] =
@@ -87,15 +89,15 @@ class GameScene(viewport: GameViewport) extends Scene[GameData, Unit, Unit] {
   ): GlobalEvent => Outcome[Unit] =
     _ => Outcome(viewModel)
 
-  val background = Graphic(viewport.width, viewport.height, Assets.mats.background).withDepth(Depth(100))
+  val background = Graphic(vw, vh, Assets.background.material.tile)
 
   val partBoxes = for {
     i <- (0 until 5).toList
-  } yield Assets.partBox.moveTo(570 + 125 * i, viewport.height - 120)
+  } yield Assets.partbox.graphic.moveTo(570 + 125 * i, vh - 120)
 
-  val lime_35     = RGBA(0.8549, 1, 0.8078, 0.35)
-  val topStrip    = Shape.Box(Rectangle(0, 0, viewport.width, 75), Fill.Color(lime_35))
-  val bottomStrip = Shape.Box(Rectangle(0, viewport.height - 125, viewport.width, 125), Fill.Color(lime_35))
+  val lime_35     = RGBA.fromHexString("daffce").withAlpha(0.35)
+  val topStrip    = Shape.Box(Rectangle(0, 0, vw, 75), Fill.Color(lime_35))
+  val bottomStrip = Shape.Box(Rectangle(0, vh - 125, vw, 125), Fill.Color(lime_35))
 
   def present(context: FrameContext[GameData], model: Unit, viewModel: Unit): Outcome[SceneUpdateFragment] = Outcome {
     SceneUpdateFragment.empty

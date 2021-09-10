@@ -5,40 +5,52 @@ import indigo.shared.materials.Material.ImageEffects
 
 object Assets {
 
-  object names {
-    val background = AssetName("background")
-    val partbox    = AssetName("partbox")
-    val belt       = AssetName("belt")
-    val gears      = AssetName("gears")
+  // Texture
+  class T(name: String) {
+    lazy val assetName = AssetName(name)
+    lazy val material  = Material.Bitmap(assetName)
+
+    def path(baseUrl: String)      = AssetPath(baseUrl + s"assets/$name.png")
+    def assetType(baseUrl: String) = AssetType.Image(assetName, path(baseUrl))
   }
+
+  // Simple graphic
+  class G(name: String, width: Int, height: Int) {
+    lazy val assetName = AssetName(name)
+    lazy val material  = Material.Bitmap(assetName)
+    lazy val graphic   = Graphic(width, height, material)
+
+    def path(baseUrl: String)      = AssetPath(baseUrl + s"assets/$name.png")
+    def assetType(baseUrl: String) = AssetType.Image(assetName, path(baseUrl))
+  }
+
+  val background = T("background")
+  val partbox    = G("partbox", 110, 110)
+  val belt       = G("belt", 400, 200)
+  val gears      = G("gears", 400, 200)
+  val junk1      = G("junk1", 100, 100)
+  val treds      = G("treds", 100, 100)
+  val body       = G("body", 100, 100)
+  val head       = G("head", 100, 100)
+  val tutorial   = G("tutorial", 915, 800)
+  val endscene   = G("endscene", 500, 500)
+  val radio      = G("radio", 500, 500)
+  val robo       = G("robo", 500, 500)
 
   def load(baseUrl: String): Set[AssetType] = Set(
-    AssetType.Image(names.background, AssetPath(baseUrl + "assets/background.png")),
-    AssetType.Image(names.partbox, AssetPath(baseUrl + "assets/partbox.png")),
-    AssetType.Image(names.belt, AssetPath(baseUrl + "assets/belt.png")),
-    AssetType.Image(names.gears, AssetPath(baseUrl + "assets/gears.png"))
+    background.assetType(baseUrl),
+    partbox.assetType(baseUrl),
+    belt.assetType(baseUrl),
+    gears.assetType(baseUrl),
+    junk1.assetType(baseUrl),
+    treds.assetType(baseUrl),
+    body.assetType(baseUrl),
+    head.assetType(baseUrl),
+    endscene.assetType(baseUrl),
+    tutorial.assetType(baseUrl),
+    radio.assetType(baseUrl),
+    robo.assetType(baseUrl)
   )
-
-  object mats {
-    val background = Material.Bitmap(names.background).tile
-    val partbox    = Material.Bitmap(names.partbox)
-    val belt       = Material.Bitmap(names.belt)
-    val gears      = Material.Bitmap(names.gears)
-  }
-
-  val partBox = Graphic(110, 110, mats.partbox)
-  val belt    = Graphic(400, 200, mats.belt)
-  val gears   = Graphic(400, 200, mats.gears)
-
-  // val endscene = atlas.findRegion("endscene")
-  // val tutorial = atlas.findRegion("tutorial")
-  // val radio = atlas.findRegion("radio")
-  // val robo = atlas.findRegion("robo")
-  // val junk1 = atlas.findRegion("junk-pile-1")
-
-  // val treds = atlas.findRegion("treds")
-  // val body = atlas.findRegion("body")
-  // val head = atlas.findRegion("head")
 
   // val scanner = Gdx.audio.newSound(Gdx.files.internal("data/scanner.wav"))
   // val capture = Gdx.audio.newSound(Gdx.files.internal("data/capture.wav"))

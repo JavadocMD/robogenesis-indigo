@@ -2,10 +2,10 @@ package game
 
 import game.Assets
 import indigo._
-import indigoextras.datatypes.DecreaseWrapAt
+import indigoextras.datatypes.{TimeVaryingValue, DecreaseWrapAt}
 import indigoextras.subsystems._
 
-case class BeltModel(beltOffset: DecreaseWrapAt)
+case class BeltModel(beltOffset: TimeVaryingValue)
 
 object BeltModel {
   val beltWidth = 400
@@ -13,11 +13,12 @@ object BeltModel {
   val count     = (0 until 4).toList // render this many of each
 
   val initial = BeltModel(
+    // TODO: actually I want to control this with a global belt speed (view model?)
     beltOffset = DecreaseWrapAt(100, -beltWidth)
   )
 }
 
-class Belt(y: Int, speed: Double) extends SubSystem {
+class Belt(y: Int) extends SubSystem {
   import BeltModel._
 
   type EventType      = FrameTick
@@ -36,11 +37,11 @@ class Belt(y: Int, speed: Double) extends SubSystem {
     }
   }
 
-  val gears = for { i <- count } yield Assets.gears.moveTo(i * gearWidth, y)
+  val gears = for { i <- count } yield Assets.gears.graphic.moveTo(i * gearWidth, y)
 
   def present(context: SubSystemFrameContext, model: BeltModel): Outcome[SceneUpdateFragment] = Outcome {
     val x0    = model.beltOffset.value.toInt
-    val belts = for { i <- count } yield Assets.belt.moveTo(i * beltWidth + x0, y)
+    val belts = for { i <- count } yield Assets.belt.graphic.moveTo(i * beltWidth + x0, y)
     SceneUpdateFragment(Layer(BindingKey("belts"), gears ++ belts))
   }
 }
