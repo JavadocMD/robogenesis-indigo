@@ -93,9 +93,9 @@ class GameScene(viewport: GameViewport) extends Scene[GameData, Unit, Unit] {
     i <- (0 until 5).toList
   } yield Assets.partBox.moveTo(570 + 125 * i, viewport.height - 120)
 
-  val lime_65     = RGBA(0.8549, 1, 0.8078, 0.65)
-  val topStrip    = Shape.Box(Rectangle(0, 0, viewport.width, 75), Fill.Color(lime_65))
-  val bottomStrip = Shape.Box(Rectangle(0, viewport.height - 125, viewport.width, 125), Fill.Color(lime_65))
+  val lime_35     = RGBA(0.8549, 1, 0.8078, 0.35)
+  val topStrip    = Shape.Box(Rectangle(0, 0, viewport.width, 75), Fill.Color(lime_35))
+  val bottomStrip = Shape.Box(Rectangle(0, viewport.height - 125, viewport.width, 125), Fill.Color(lime_35))
 
   def present(context: FrameContext[GameData], model: Unit, viewModel: Unit): Outcome[SceneUpdateFragment] = Outcome {
     SceneUpdateFragment.empty
