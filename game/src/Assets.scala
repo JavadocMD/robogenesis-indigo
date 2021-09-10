@@ -1,7 +1,6 @@
 package game
 
 import indigo._
-import indigo.shared.materials.Material.ImageEffects
 
 object Assets {
 

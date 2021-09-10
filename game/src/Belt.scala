@@ -1,47 +1,53 @@
 package game
 
 import game.Assets
+import game.GameEvent._
 import indigo._
-import indigoextras.datatypes.{TimeVaryingValue, DecreaseWrapAt}
 import indigoextras.subsystems._
 
-case class BeltModel(beltOffset: TimeVaryingValue)
-
-object BeltModel {
+object Belt {
   val beltWidth = 400
   val gearWidth = 400
-  val count     = (0 until 4).toList // render this many of each
 
-  val initial = BeltModel(
-    // TODO: actually I want to control this with a global belt speed (view model?)
-    beltOffset = DecreaseWrapAt(100, -beltWidth)
-  )
-}
-
-class Belt(y: Int) extends SubSystem {
-  import BeltModel._
-
-  type EventType      = FrameTick
-  type SubSystemModel = BeltModel
-
-  def eventFilter: GlobalEvent => Option[FrameTick] = {
-    case FrameTick => Some(FrameTick)
-    case _         => None
-  }
-
-  val initialModel: Outcome[BeltModel] = Outcome(BeltModel.initial)
-
-  def update(context: SubSystemFrameContext, model: BeltModel): FrameTick => Outcome[BeltModel] = { case FrameTick =>
-    Outcome {
-      model.copy(beltOffset = model.beltOffset.update(context.delta))
+  case class Model(speed: Double = 0, x: Double = 0) {
+    def setSpeed(v: Double) = this.copy(speed = v)
+    def move(t: Seconds) = {
+      val tmpX = x - t.toDouble * speed                            // movement is to the left
+      val newX = if (tmpX > -beltWidth) tmpX else tmpX + beltWidth // wrap-around
+      this.copy(x = newX)
     }
   }
+}
 
+/** Animates the conveyor belt graphic according to the current speed. */
+class Belt(viewWidth: Int, y: Int) extends SubSystem {
+  import Belt._
+
+  type EventType      = GlobalEvent
+  type SubSystemModel = Model
+
+  def eventFilter: GlobalEvent => Option[EventType] = {
+    case FrameTick       => Some(FrameTick)
+    case e: SetBeltSpeed => Some(e)
+    case _               => None
+  }
+
+  val initialModel: Outcome[Model] = Outcome(Model())
+
+  def update(context: SubSystemFrameContext, model: Model): EventType => Outcome[Model] = {
+    case SetBeltSpeed(v) => Outcome(model.setSpeed(v))
+    case FrameTick       => Outcome(model.move(context.delta))
+    case _               => Outcome(model)
+  }
+
+  // render this many of each
+  val count = List.range(0, viewWidth / beltWidth + 1)
+  // the gear graphics are static
   val gears = for { i <- count } yield Assets.gears.graphic.moveTo(i * gearWidth, y)
 
-  def present(context: SubSystemFrameContext, model: BeltModel): Outcome[SceneUpdateFragment] = Outcome {
-    val x0    = model.beltOffset.value.toInt
-    val belts = for { i <- count } yield Assets.belt.graphic.moveTo(i * beltWidth + x0, y)
+  def present(context: SubSystemFrameContext, model: Model): Outcome[SceneUpdateFragment] = Outcome {
+    val xOffset = model.x.toInt
+    val belts   = for { i <- count } yield Assets.belt.graphic.moveTo(i * beltWidth + xOffset, y)
     SceneUpdateFragment(Layer(BindingKey("belts"), gears ++ belts))
   }
 }
