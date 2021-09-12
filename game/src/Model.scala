@@ -4,13 +4,22 @@ import indigo._
 
 case class Model(
     beltSpeed: Double = 0,
-    parts: List[Part] = Nil
+    parts: List[Part] = Nil,
+    junk: List[Junk] = Nil,
+    selected: Set[JunkId] = Set.empty
 ) {
-  def collectPart(p: Part) = this.copy(parts = p :: parts)
+  def collect(p: Part) = this.copy(parts = p :: parts)
 }
 
 object Model {
-  def initial = Model()
+  // def initial = Model()
+  def initial = Model( // tmp
+    junk = List(
+      Junk(JunkId(1), Some(Part.Head), 100, 75),
+      Junk(JunkId(2), None, 200, 275),
+      Junk(JunkId(3), Some(Part.Head), 300, 475)
+    )
+  )
 }
 
 trait Part {

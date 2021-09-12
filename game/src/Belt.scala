@@ -12,7 +12,7 @@ object Belt {
   case class Model(speed: Double = 0, x: Double = 0) {
     def setSpeed(v: Double) = this.copy(speed = v)
     def move(t: Seconds) = {
-      val tmpX = x - t.toDouble * speed                            // movement is to the left
+      val tmpX = x + t.toDouble * speed
       val newX = if (tmpX > -beltWidth) tmpX else tmpX + beltWidth // wrap-around
       this.copy(x = newX)
     }

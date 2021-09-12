@@ -28,6 +28,7 @@ object Assets {
   val belt       = G("belt", 400, 200)
   val gears      = G("gears", 400, 200)
   val junk1      = G("junk1", 100, 100)
+  val junk2      = G("junk2", 100, 100)
   val treds      = G("treds", 100, 100)
   val body       = G("body", 100, 100)
   val head       = G("head", 100, 100)
@@ -42,6 +43,7 @@ object Assets {
     belt.assetType(baseUrl),
     gears.assetType(baseUrl),
     junk1.assetType(baseUrl),
+    junk2.assetType(baseUrl),
     treds.assetType(baseUrl),
     body.assetType(baseUrl),
     head.assetType(baseUrl),

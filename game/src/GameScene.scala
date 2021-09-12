@@ -23,12 +23,27 @@ object GameScene extends Scene[GameData, Model, Unit] {
 
   def updateModel(context: FrameContext[GameData], model: Model): GlobalEvent => Outcome[Model] = {
     case KeyboardEvent.KeyDown(Key.ENTER) => // temp
-      Outcome(model).addGlobalEvents(SetBeltSpeed(100))
+      Outcome(model).addGlobalEvents(SetBeltSpeed(-100))
     case KeyboardEvent.KeyDown(Key.KEY_P) => // temp
       Outcome(model).addGlobalEvents(CollectPart(Part.random(context.dice)))
+    case KeyboardEvent.KeyDown(Key.KEY_M) => // temp
+      println(model)
+      Outcome(model)
+    case MouseEvent.Click(x, y) =>
+      // TODO: because I'm not clearing selection on match, every click after
+      // making a match gives the matched part, but obviously this is a WIP bug
+      val clicked = model.junk.find(_.bounds.isPointWithin(x, y)).map(_.id)
+      clicked match {
+        case Some(id) => Selection.update(model, id)
+        case None     => Outcome(model)
+      }
     case SetBeltSpeed(v) => Outcome(model.copy(beltSpeed = v))
-    case CollectPart(p)  => Outcome(model.collectPart(p))
-    case _               => Outcome(model)
+    case CollectPart(p)  => Outcome(model.collect(p))
+    case FrameTick =>
+      val dx = context.delta.toDouble * model.beltSpeed
+      val js = Junk.update(model.junk, dx)
+      Outcome(model.copy(junk = js))
+    case _ => Outcome(model)
   }
 
   def updateViewModel(
@@ -42,17 +57,19 @@ object GameScene extends Scene[GameData, Model, Unit] {
     val background = BindingKey("background")
     val ui         = BindingKey("ui")
     val belts      = BindingKey("belts")
+    val junk       = BindingKey("junk")
   }
 
   val baseScene = SceneUpdateFragment(
     Layer(LayerKey.background, Background.nodes),
     Layer(LayerKey.ui),
-    Layer(LayerKey.belts)
+    Layer(LayerKey.belts),
+    Layer(LayerKey.junk)
   )
 
-  def present(context: FrameContext[GameData], model: Model, viewModel: Unit): Outcome[SceneUpdateFragment] =
+  def present(c: FrameContext[GameData], m: Model, vm: Unit): Outcome[SceneUpdateFragment] =
     Outcome {
-      baseScene |+| Inventory.scene(context, model, viewModel)
+      baseScene |+| Inventory.scene(c, m, vm) |+| Junk.scene(c, m, vm)
     }
 }
 
