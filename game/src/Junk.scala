@@ -31,11 +31,14 @@ class Junk(val id: JunkId, val contents: Option[Part], val x: Double, val y: Dou
 object Junk {
   val EmptyGraphic = Shape.Box(Rectangle(0, 0, 100, 100), Fill.None)
 
-  def update(junk: List[Junk], dx: Double): List[Junk] =
-    for {
-      j <- junk
+  def update(model: Model, delta: Seconds): Outcome[Model] = {
+    val dx = delta.toDouble * model.beltSpeed
+    val js = for {
+      j <- model.junk
       newX = j.x + dx if newX > -100
     } yield j.setX(newX)
+    Outcome(model.copy(junk = js))
+  }
 
   def scene(context: FrameContext[GameData], model: Model, viewModel: Unit): SceneUpdateFragment = {
     val junk = for {

@@ -29,20 +29,17 @@ object GameScene extends Scene[GameData, Model, Unit] {
     case KeyboardEvent.KeyDown(Key.KEY_M) => // temp
       println(model)
       Outcome(model)
-    case MouseEvent.Click(x, y) =>
-      // TODO: because I'm not clearing selection on match, every click after
-      // making a match gives the matched part, but obviously this is a WIP bug
-      val clicked = model.junk.find(_.bounds.isPointWithin(x, y)).map(_.id)
-      clicked match {
-        case Some(id) => Selection.update(model, id)
-        case None     => Outcome(model)
-      }
-    case SetBeltSpeed(v) => Outcome(model.copy(beltSpeed = v))
-    case CollectPart(p)  => Outcome(model.collect(p))
+    case MouseEvent.Click(x, y) => Selection.trySelect(model, x, y)
+    case SetBeltSpeed(v)        => Outcome(model.copy(beltSpeed = v))
+    case CollectPart(p)         => Outcome(model.copy(parts = p :: model.parts))
+    case AddTask(t)             => Outcome(model.copy(tasks = t :: model.tasks))
     case FrameTick =>
-      val dx = context.delta.toDouble * model.beltSpeed
-      val js = Junk.update(model.junk, dx)
-      Outcome(model.copy(junk = js))
+      List(
+        Junk.update(_, context.delta),
+        Task.update(_, context.delta)
+      ).foldLeft(Outcome(model)) { (acc, curr) =>
+        acc.flatMap(curr)
+      }
     case _ => Outcome(model)
   }
 

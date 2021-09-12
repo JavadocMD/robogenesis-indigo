@@ -6,10 +6,9 @@ case class Model(
     beltSpeed: Double = 0,
     parts: List[Part] = Nil,
     junk: List[Junk] = Nil,
-    selected: Set[JunkId] = Set.empty
-) {
-  def collect(p: Part) = this.copy(parts = p :: parts)
-}
+    selected: Set[JunkId] = Set.empty,
+    tasks: List[Task] = Nil
+)
 
 object Model {
   // def initial = Model()
