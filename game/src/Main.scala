@@ -14,7 +14,7 @@ final case class GameData(
 )
 
 @JSExportTopLevel("IndigoGame")
-object Main extends IndigoGame[BootData, GameData, Model, Unit] {
+object Main extends IndigoGame[BootData, GameData, Model, Unit]:
 
   // Screen size. (Hard-coded for this game.)
   val vw = 1200
@@ -60,4 +60,5 @@ object Main extends IndigoGame[BootData, GameData, Model, Unit] {
 
   def present(context: FrameContext[GameData], model: Model, viewModel: Unit): Outcome[SceneUpdateFragment] =
     Outcome(SceneUpdateFragment.empty)
-}
+
+end Main
