@@ -8,15 +8,30 @@ case class Model(
     junk: List[Junk] = Nil,
     selected: Set[JunkId] = Set.empty,
     tasks: List[Task] = Nil
-)
+):
+
+  // Where dy is relative to initialY, not the previous y
+  def liftJunk(id: JunkId, dy: Double): Model =
+    val i = junk.indexWhere(_.id == id)
+    val j = junk(i)
+    copy(junk = junk.updated(i, j.withConveyed(false).moveTo(j.x, j.initialY + dy)))
+
+  def collectJunk(id1: JunkId, id2: JunkId, part: Part): Model =
+    copy(
+      parts = part :: parts,
+      junk = junk.filter(j => j.id != id1 && j.id != id2),
+      selected = Set.empty
+    )
+
+end Model
 
 object Model:
   // def initial = Model()
   def initial = Model( // tmp
     junk = List(
-      Junk(JunkId(1), Some(Part.Head), 100, 75),
-      Junk(JunkId(2), None, 200, 275),
-      Junk(JunkId(3), Some(Part.Head), 300, 475)
+      Junk(JunkId(1), Some(Part.Head), 100, 75, 75, true),
+      Junk(JunkId(2), None, 200, 275, 275, true),
+      Junk(JunkId(3), Some(Part.Head), 300, 475, 475, true)
     )
   )
 

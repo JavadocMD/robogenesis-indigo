@@ -8,10 +8,18 @@ object JunkId:
   given CanEqual[JunkId, JunkId]                 = CanEqual.derived
   given CanEqual[Option[JunkId], Option[JunkId]] = CanEqual.derived
 
-class Junk(val id: JunkId, val contents: Option[Part], val x: Double, val y: Double):
+class Junk(
+    val id: JunkId,
+    val contents: Option[Part],
+    val x: Double,
+    val y: Double,
+    val initialY: Double,
+    val conveyed: Boolean
+):
   val bounds = Rectangle(x.toInt, y.toInt, 100, 100)
 
-  def moveTo(newX: Double) = Junk(id, contents, newX, y)
+  def moveTo(x: Double, y: Double)    = Junk(id, contents, x, y, initialY, conveyed)
+  def withConveyed(conveyed: Boolean) = Junk(id, contents, x, y, initialY, conveyed)
 
   def draw(isSelected: Boolean): SceneNode =
     val node = (isSelected, contents) match
@@ -27,10 +35,11 @@ object Junk:
 
   def update(model: Model, delta: Seconds): Outcome[Model] =
     val dx = delta.toDouble * model.beltSpeed
-    val js = for
-      j <- model.junk
-      newX = j.x + dx if newX > -100
-    yield j.moveTo(newX)
+    val js =
+      for j <- model.junk if j.x > -100
+      yield
+        if !j.conveyed then j
+        else j.moveTo(j.x + dx, j.y)
     Outcome(model.copy(junk = js))
 
   def scene(context: FrameContext[GameData], model: Model, viewModel: Unit): SceneUpdateFragment =

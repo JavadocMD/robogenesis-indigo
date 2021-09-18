@@ -4,8 +4,11 @@ import indigo._
 
 object Assets:
 
+  trait AssetDef:
+    def assetType(baseUrl: String): AssetType
+
   // Texture
-  class T(name: String):
+  class T(name: String) extends AssetDef:
     lazy val assetName = AssetName(name)
     lazy val material  = Material.Bitmap(assetName)
 
@@ -13,7 +16,7 @@ object Assets:
     def assetType(baseUrl: String) = AssetType.Image(assetName, path(baseUrl))
 
   // Simple graphic
-  class G(name: String, width: Int, height: Int):
+  class G(name: String, width: Int, height: Int) extends AssetDef:
     lazy val assetName = AssetName(name)
     lazy val material  = Material.Bitmap(assetName)
     lazy val graphic   = Graphic(width, height, material)
@@ -21,7 +24,15 @@ object Assets:
     def path(baseUrl: String)      = AssetPath(baseUrl + s"assets/$name.png")
     def assetType(baseUrl: String) = AssetType.Image(assetName, path(baseUrl))
 
-  // Graphical assets
+  // Audio
+  class A(name: String) extends AssetDef:
+    lazy val assetName = AssetName(name)
+    lazy val play      = PlaySound(assetName, Volume.Max)
+
+    def path(baseUrl: String)      = AssetPath(baseUrl + s"assets/$name.wav")
+    def assetType(baseUrl: String) = AssetType.Audio(assetName, path(baseUrl))
+
+  // All assets
   val background = T("background")
   val partbox    = G("partbox", 110, 110)
   val belt       = G("belt", 400, 200)
@@ -35,29 +46,34 @@ object Assets:
   val endscene   = G("endscene", 500, 500)
   val radio      = G("radio", 500, 500)
   val robo       = G("robo", 500, 500)
+  val scanner    = A("scanner")
+  val capture    = A("capture")
+  val static     = A("static")
+  val thrum      = A("thrum")
+  val machine    = A("machine")
+  val roboBleep  = A("robo")
 
   def load(baseUrl: String): Set[AssetType] = Set(
-    background.assetType(baseUrl),
-    partbox.assetType(baseUrl),
-    belt.assetType(baseUrl),
-    gears.assetType(baseUrl),
-    junk1.assetType(baseUrl),
-    junk2.assetType(baseUrl),
-    treds.assetType(baseUrl),
-    body.assetType(baseUrl),
-    head.assetType(baseUrl),
-    endscene.assetType(baseUrl),
-    tutorial.assetType(baseUrl),
-    radio.assetType(baseUrl),
-    robo.assetType(baseUrl)
-  )
-
-// val scanner = Gdx.audio.newSound(Gdx.files.internal("data/scanner.wav"))
-// val capture = Gdx.audio.newSound(Gdx.files.internal("data/capture.wav"))
-// val static = Gdx.audio.newSound(Gdx.files.internal("data/static.wav"))
-// val thrum = Gdx.audio.newSound(Gdx.files.internal("data/thrum.wav"))
-// val machine = Gdx.audio.newSound(Gdx.files.internal("data/machine.wav"))
-// val roboBleep = Gdx.audio.newSound(Gdx.files.internal("data/robo.wav"))
+    background,
+    partbox,
+    belt,
+    gears,
+    junk1,
+    junk2,
+    treds,
+    body,
+    head,
+    endscene,
+    tutorial,
+    radio,
+    robo,
+    scanner,
+    capture,
+    static,
+    thrum,
+    machine,
+    roboBleep
+  ).map(_.assetType(baseUrl))
 
 // val bpdDiamond = new BitmapFont(Gdx.files.internal("data/bpDotsDiamond.fnt"), atlas.findRegion("bpDotsDiamond"))
 // val bpdMinus = new BitmapFont(Gdx.files.internal("data/bpDotsMinus.fnt"), atlas.findRegion("bpDotsMinus"))
