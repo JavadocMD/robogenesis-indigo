@@ -32,13 +32,10 @@ object GameScene extends Scene[GameData, Model, Unit]:
     case CollectPart(p)         => Outcome(model.copy(parts = p :: model.parts))
     case AddTask(t)             => Outcome(model.copy(tasks = t :: model.tasks))
     case FrameTick =>
-      List(
-        Junk.update(_, context.delta),
-        JunkFactory.update(_, context.delta, context.dice),
-        Task.update(_, context.delta)
-      ).foldLeft(Outcome(model)) { (acc, curr) =>
-        acc.flatMap(curr)
-      }
+      Outcome(model)
+        .flatMap(Junk.update(_, context.delta))
+        .flatMap(JunkFactory.update(_, context.delta, context.dice))
+        .flatMap(Task.update(_, context.delta))
     case _ => Outcome(model)
   end updateModel
 
