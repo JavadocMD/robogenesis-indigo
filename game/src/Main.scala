@@ -4,6 +4,14 @@ import indigo._
 import indigo.scenes._
 import scala.scalajs.js.annotation.JSExportTopLevel
 
+// Some hard-coded configuration. A little lazy, but simple.
+object Config:
+  // Screen size.
+  val vw = 1200
+  val vh = 800
+  // Y-coords of the belts on screen.
+  val beltYs = Set(75, 275, 475)
+
 final case class BootData(
     assetPath: String,
     viewport: GameViewport
@@ -16,10 +24,6 @@ final case class GameData(
 @JSExportTopLevel("IndigoGame")
 object Main extends IndigoGame[BootData, GameData, Model, Unit]:
 
-  // Screen size. (Hard-coded for this game.)
-  val vw = 1200
-  val vh = 800
-
   def initialScene(bootData: BootData): Option[SceneName] = None
 
   def scenes(bootData: BootData): NonEmptyList[Scene[GameData, Model, Unit]] = NonEmptyList {
@@ -30,7 +34,7 @@ object Main extends IndigoGame[BootData, GameData, Model, Unit]:
 
   def boot(flags: Map[String, String]): Outcome[BootResult[BootData]] = Outcome {
     val assetPath = flags.getOrElse("assetPath", "")
-    val viewport  = GameViewport(vw, vh)
+    val viewport  = GameViewport(Config.vw, Config.vh)
     val data      = BootData(assetPath, viewport)
     val config = GameConfig(
       clearColor = RGBA.Black,

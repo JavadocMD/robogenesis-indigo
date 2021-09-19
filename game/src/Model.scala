@@ -6,15 +6,20 @@ case class Model(
     beltSpeed: Double = 0,
     parts: List[Part] = Nil,
     junk: List[Junk] = Nil,
+    factory: JunkFactory = JunkFactory.initial,
     selected: Set[JunkId] = Set.empty,
     tasks: List[Task] = Nil
 ):
 
-  // Where dy is relative to initialY, not the previous y
-  def liftJunk(id: JunkId, dy: Double): Model =
+  // warning: error if id isn't present
+  def getY(id: JunkId): Double =
+    junk.find(_.id == id).get.y
+
+  // warning: error if id isn't present
+  def liftJunk(id: JunkId, y: Double): Model =
     val i = junk.indexWhere(_.id == id)
     val j = junk(i)
-    copy(junk = junk.updated(i, j.withConveyed(false).moveTo(j.x, j.initialY + dy)))
+    copy(junk = junk.updated(i, j.withConveyed(false).moveTo(j.x, y)))
 
   def collectJunk(id1: JunkId, id2: JunkId, part: Part): Model =
     copy(
@@ -26,14 +31,14 @@ case class Model(
 end Model
 
 object Model:
-  // def initial = Model()
-  def initial = Model( // tmp
-    junk = List(
-      Junk(JunkId(1), Some(Part.Head), 100, 75, 75, true),
-      Junk(JunkId(2), None, 200, 275, 275, true),
-      Junk(JunkId(3), Some(Part.Head), 300, 475, 475, true)
-    )
-  )
+  def initial = Model()
+// def initial = Model( // tmp
+//   junk = List(
+//     Junk(JunkId(1), Some(Part.Head), 100, 75, true),
+//     Junk(JunkId(2), None, 200, 275, true),
+//     Junk(JunkId(3), Some(Part.Head), 300, 475, true)
+//   )
+// )
 
 trait Part:
   val graphic: Graphic[Material.Bitmap]

@@ -8,18 +8,17 @@ object JunkId:
   given CanEqual[JunkId, JunkId]                 = CanEqual.derived
   given CanEqual[Option[JunkId], Option[JunkId]] = CanEqual.derived
 
-class Junk(
-    val id: JunkId,
-    val contents: Option[Part],
-    val x: Double,
-    val y: Double,
-    val initialY: Double,
-    val conveyed: Boolean
+case class Junk(
+    id: JunkId,
+    contents: Option[Part],
+    x: Double,
+    y: Double,
+    conveyed: Boolean
 ):
-  val bounds = Rectangle(x.toInt, y.toInt, 100, 100)
+  lazy val bounds = Rectangle(x.toInt, y.toInt, 100, 100)
 
-  def moveTo(x: Double, y: Double)    = Junk(id, contents, x, y, initialY, conveyed)
-  def withConveyed(conveyed: Boolean) = Junk(id, contents, x, y, initialY, conveyed)
+  def moveTo(x: Double, y: Double)    = copy(x = x, y = y)
+  def withConveyed(conveyed: Boolean) = copy(conveyed = conveyed)
 
   def draw(isSelected: Boolean): SceneNode =
     val node = (isSelected, contents) match
@@ -33,6 +32,7 @@ end Junk
 object Junk:
   val EmptyGraphic = Shape.Box(Rectangle(0, 0, 100, 100), Fill.None)
 
+  // Moves junk at belt speed if on conveyor; removes junk that goes off screen.
   def update(model: Model, delta: Seconds): Outcome[Model] =
     val dx = delta.toDouble * model.beltSpeed
     val js =
@@ -50,3 +50,48 @@ object Junk:
     SceneUpdateFragment(Layer(GameScene.LayerKey.junk, junk))
 
 end Junk
+
+case class JunkFactory(
+    levels: List[Int],
+    partChance: Double,
+    partPeriod: Seconds,
+    on: Boolean = false,
+    timeSince: Seconds = Seconds.zero,
+    nextId: Int = 0
+):
+  def randomLevel(dice: Dice): Int = levels(dice.roll(levels.size) - 1)
+  def createJunk(dice: Dice): Junk =
+    val id   = JunkId(nextId)
+    val part = if dice.rollDouble < partChance then Some(Part.random(dice)) else None
+    val y    = randomLevel(dice) + dice.roll(41) - 21 // jitter by [-20,+20]
+    Junk(id, part, Config.vw, y, true)
+
+end JunkFactory
+
+object JunkFactory:
+  val initial = JunkFactory(Config.beltYs.toList, 0.6, Seconds(1.0))
+
+  // Create a new Junk pile if it's time.
+  def update(model: Model, delta: Seconds, dice: Dice): Outcome[Model] =
+    if !model.factory.on then Outcome(model)
+    else
+      val t = model.factory.timeSince + delta
+      Outcome {
+        if t < model.factory.partPeriod then updateIdle(model, t)
+        else updateCreate(model, t, dice)
+      }
+
+  private[this] def updateIdle(model: Model, timeSince: Seconds): Model =
+    model.copy(factory = model.factory.copy(timeSince = timeSince))
+
+  private[this] def updateCreate(model: Model, timeSince: Seconds, dice: Dice): Model =
+    val f = model.factory
+    model.copy(
+      junk = f.createJunk(dice) :: model.junk,
+      factory = f.copy(
+        timeSince = timeSince % f.partPeriod,
+        nextId = f.nextId + 1
+      )
+    )
+
+end JunkFactory

@@ -5,7 +5,7 @@ import indigo.scenes._
 
 /** Draws scene nodes for the player's inventory. */
 object Inventory:
-  import Main.{vw, vh}
+  import Config.{vw, vh}
 
   val x0 = 570 // x-coord of first item
   val dx = 125 // separation between items

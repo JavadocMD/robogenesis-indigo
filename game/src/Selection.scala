@@ -13,7 +13,7 @@ object Selection:
       model => Outcome(model.copy(selected = Set.empty))
     )
 
-    def matched(id1: JunkId, id2: JunkId, p: Part): Task =
+    def matched(p: Part, id1: JunkId, y1: Double, id2: JunkId, y2: Double): Task =
       val phase1      = (scannerRecharge / (scannerRecharge + liftTime)).toDouble
       val interpolate = Interpolate.powIn(3)
       var playedSound = false
@@ -28,7 +28,7 @@ object Selection:
             val dy       = -800.0 * interpolate(subAlpha)
             val es       = if playedSound then Nil else List(Assets.capture.play)
             playedSound = true
-            Outcome(model.liftJunk(id1, dy).liftJunk(id2, dy))
+            Outcome(model.liftJunk(id1, y1 + dy).liftJunk(id2, y2 + dy))
               .addGlobalEvents(es)
           // Grant the matched part, delete the junk piles, and clear the selection
           else Outcome(model.collectJunk(id1, id2, p))
@@ -57,7 +57,12 @@ object Selection:
       // updated selection
       val s = m.selected + c.id
       val events = getMatch(s, m.junk) match
-        case Some(p)             => List(GameEvent.AddTask(Tasks.matched(s.head, s.tail.head, p)))
+        case Some(p) =>
+          val j1 = s.head
+          val y1 = model.getY(j1)
+          val j2 = s.tail.head
+          val y2 = model.getY(j2)
+          List(GameEvent.AddTask(Tasks.matched(p, j1, y1, j2, y2)))
         case None if s.size == 2 => List(GameEvent.AddTask(Tasks.mismatched))
         case _                   => Nil
       Outcome(m.copy(selected = s))
