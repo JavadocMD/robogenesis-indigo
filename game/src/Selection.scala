@@ -8,30 +8,23 @@ object Selection:
     val scannerRecharge = Seconds(1.0)
     val liftTime        = Seconds(0.5)
 
-    def mismatched: Task = Task.onComplete(
-      duration = scannerRecharge,
-      model => Outcome(model.copy(selected = Set.empty))
+    def mismatched: Task = Task.Sequence(
+      Task.Delay(scannerRecharge),
+      Task.Then(_.copy(selected = Set.empty))
     )
 
     def matched(p: Part, id1: JunkId, y1: Double, id2: JunkId, y2: Double): Task =
-      val phase1      = (scannerRecharge / (scannerRecharge + liftTime)).toDouble
-      val interpolate = Interpolate.powIn(3)
-      var playedSound = false
-      Task(
-        duration = scannerRecharge + liftTime,
-        (alpha, model) =>
-          // Do nothing until scanner recharge time completes
-          if alpha < phase1 then Outcome(model)
-          // Animate the junk flying upwards over the next `liftTime` seconds
-          else if alpha < 1.0 then
-            val subAlpha = (alpha - phase1) / (1.0 - phase1)
-            val dy       = -800.0 * interpolate(subAlpha)
-            val es       = if playedSound then Nil else List(Assets.capture.play)
-            playedSound = true
-            Outcome(model.liftJunk(id1, y1 + dy).liftJunk(id2, y2 + dy))
-              .addGlobalEvents(es)
-          // Grant the matched part, delete the junk piles, and clear the selection
-          else Outcome(model.collectJunk(id1, id2, p))
+      Task.Sequence(
+        Task.Delay(scannerRecharge),
+        Task.ThenE((_, List(Assets.capture.play))),
+        Task.Interpolate(
+          liftTime,
+          Interpolate.powIn(3),
+          (alpha, model) =>
+            val dy = -800.0 * alpha
+            model.liftJunk(id1, y1 + dy).liftJunk(id2, y2 + dy)
+        ),
+        Task.Then(_.collectJunk(id1, id2, p))
       )
 
   end Tasks

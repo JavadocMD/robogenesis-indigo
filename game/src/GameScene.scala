@@ -35,7 +35,7 @@ object GameScene extends Scene[GameData, Model, Unit]:
       Outcome(model)
         .flatMap(Junk.update(_, context.delta))
         .flatMap(JunkFactory.update(_, context.delta, context.dice))
-        .flatMap(Task.update(_, context.delta))
+        .flatMap(Task.update(context, _))
     case _ => Outcome(model)
   end updateModel
 
