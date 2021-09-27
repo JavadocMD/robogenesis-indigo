@@ -2,14 +2,8 @@ package game
 
 import indigo._
 
-opaque type JunkId = Int
-object JunkId:
-  def apply(id: Int): JunkId                     = id
-  given CanEqual[JunkId, JunkId]                 = CanEqual.derived
-  given CanEqual[Option[JunkId], Option[JunkId]] = CanEqual.derived
-
 case class Junk(
-    id: JunkId,
+    id: Junk.Id,
     contents: Option[Part],
     x: Double,
     y: Double,
@@ -30,7 +24,32 @@ case class Junk(
 end Junk
 
 object Junk:
-  val EmptyGraphic = Shape.Box(Rectangle(0, 0, 100, 100), Fill.None)
+
+  opaque type Id = Int
+  def Id(value: Int): Id = value
+
+  extension (id: Id) def toInt: Int = id
+
+  extension (model: Model)
+    def getJunk(id: Junk.Id): Option[Junk] = model.junk.find(_.id == id)
+
+    // warning: no-op if id isn't present
+    def liftJunk(id: Junk.Id, y: Double): Model =
+      val i = model.junk.indexWhere(_.id == id)
+      if i < 0 then model
+      else
+        val j    = model.junk(i)
+        val newJ = j.withConveyed(false).moveTo(j.x, y)
+        model.copy(junk = model.junk.updated(i, newJ))
+
+    def collectJunk(id1: Junk.Id, id2: Junk.Id, part: Part): Model =
+      model.copy(
+        parts = part :: model.parts,
+        junk = model.junk.filter(j => j.id != id1 && j.id != id2),
+        selected = Selection.Empty
+      )
+
+  end extension
 
   // Moves junk at belt speed if on conveyor; removes junk that goes off screen.
   def update(model: Model, delta: Seconds): Outcome[Model] =
@@ -43,10 +62,9 @@ object Junk:
     Outcome(model.copy(junk = js))
 
   def scene(context: FrameContext[GameData], model: Model, viewModel: Unit): SceneUpdateFragment =
-    val junk = for
-      j <- model.junk
-      isSelected = model.selected.contains(j.id)
-    yield j.draw(isSelected)
+    val junk =
+      for j <- model.junk
+      yield j.draw(model.selected.isSelected(j.id))
     SceneUpdateFragment(Layer(GameScene.LayerKey.junk, junk))
 
 end Junk
@@ -61,9 +79,9 @@ case class JunkFactory(
 ):
   def randomLevel(dice: Dice): Int = levels(dice.roll(levels.size) - 1)
   def createJunk(dice: Dice): Junk =
-    val id   = JunkId(nextId)
+    val id   = Junk.Id(nextId)
     val part = if dice.rollDouble < partChance then Some(Part.random(dice)) else None
-    val y    = randomLevel(dice) + dice.roll(41) - 21 // jitter by [-20,+20]
+    val y    = randomLevel(dice) + dice.roll(41) - 21 // vary by [-20,+20]
     Junk(id, part, Config.vw, y, true)
 
 end JunkFactory

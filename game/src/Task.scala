@@ -51,6 +51,12 @@ object Task:
       val (m, es) = f(model)
       Complete(delta, m, es)
 
+  // Produces static events without altering the model or consuming any frame delta.
+  case class Event(events: GlobalEvent*) extends Task:
+    val eventsList = events.toList
+    def update(model: Model, delta: Seconds)(using FrameContext[GameData]) =
+      Complete(delta, model, eventsList)
+
   // Wait for time to pass. Does not alter the model.
   case class Delay(duration: Seconds, elapsed: Seconds = Seconds.zero) extends Task:
     def update(model: Model, delta: Seconds)(using FrameContext[GameData]) =

@@ -7,28 +7,9 @@ case class Model(
     parts: List[Part] = Nil,
     junk: List[Junk] = Nil,
     factory: JunkFactory = JunkFactory.initial,
-    selected: Set[JunkId] = Set.empty,
+    selected: Selection = Selection.Empty,
     tasks: List[Task] = Nil
-):
-
-  // warning: error if id isn't present
-  def getY(id: JunkId): Double =
-    junk.find(_.id == id).get.y
-
-  // warning: error if id isn't present
-  def liftJunk(id: JunkId, y: Double): Model =
-    val i = junk.indexWhere(_.id == id)
-    val j = junk(i)
-    copy(junk = junk.updated(i, j.withConveyed(false).moveTo(j.x, y)))
-
-  def collectJunk(id1: JunkId, id2: JunkId, part: Part): Model =
-    copy(
-      parts = part :: parts,
-      junk = junk.filter(j => j.id != id1 && j.id != id2),
-      selected = Set.empty
-    )
-
-end Model
+)
 
 object Model:
   def initial = Model()
