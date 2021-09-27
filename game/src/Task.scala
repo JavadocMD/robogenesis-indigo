@@ -2,6 +2,7 @@ package game
 
 import indigo._
 import scala.annotation.tailrec
+import Interpolate.Interpolation
 
 trait Task:
   def update(model: Model, delta: Seconds)(using FrameContext[GameData]): Task.Result
@@ -11,10 +12,9 @@ object Task:
   // The result of running a task.
   // A task can complete, consuming some amount of frame delta,
   // or require continuation next frame (implicitly consuming all of the frame's delta).
-  sealed trait Result
-  object Result:
-    case class Complete(delta: Seconds, model: Model, events: List[GlobalEvent] = Nil) extends Result
-    case class Continue(task: Task, model: Model, events: List[GlobalEvent] = Nil)     extends Result
+  enum Result:
+    case Complete(delta: Seconds, model: Model, events: List[GlobalEvent] = Nil)
+    case Continue(task: Task, model: Model, events: List[GlobalEvent] = Nil)
 
   import Result._
 
@@ -67,15 +67,14 @@ object Task:
   // Alter the model over time with the help of an interpolated value.
   case class Interpolate(
       duration: Seconds,
-      interpolation: Double => Double,
+      interp: Interpolation,
       f: (Double, Model) => Model,
       elapsed: Seconds = Seconds.zero
   ) extends Task:
     def update(model: Model, delta: Seconds)(using FrameContext[GameData]) =
       val nextElapsed = elapsed + delta
-      val baseAlpha   = (nextElapsed / duration).toDouble.min(1.0)
-      val alpha       = interpolation(baseAlpha)
-      val nextModel   = f(alpha, model)
+      val alpha       = (nextElapsed / duration).toDouble.min(1.0)
+      val nextModel   = f(interp(alpha), model)
       if nextElapsed >= duration then Complete(nextElapsed - duration, nextModel)
       else Continue(copy(elapsed = nextElapsed), nextModel)
 
