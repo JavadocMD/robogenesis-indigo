@@ -45,7 +45,7 @@ class Belt(viewWidth: Int, y: Int) extends SubSystem:
   def present(context: SubSystemFrameContext, model: Model): Outcome[SceneUpdateFragment] = Outcome {
     val xOffset = model.x.toInt
     val belts   = for i <- count yield Assets.belt.graphic.moveTo(i * beltWidth + xOffset, y)
-    SceneUpdateFragment(Layer(BindingKey("belts"), gears ++ belts))
+    SceneUpdateFragment(Layer(GameScene.LayerKey.belts, gears ++ belts))
   }
 
 end Belt

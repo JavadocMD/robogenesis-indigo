@@ -16,21 +16,22 @@ object GameScene extends Scene[GameData, Model, Unit]:
   val eventFilters: EventFilters      = EventFilters.Permissive
 
   val subSystems: Set[SubSystem] =
-    (for y <- Config.beltYs yield Belt(Config.vw, y)) + FPSCounter(Point(0, 0), 60, LayerKey.ui)
+    (for y <- Config.beltYs yield Belt(Config.vw, y))
+      + FPSCounter(Point(0, 0), 60, LayerKey.ui)
 
   def updateModel(context: FrameContext[GameData], model: Model): GlobalEvent => Outcome[Model] =
     case KeyboardEvent.KeyDown(Key.ENTER) => // temp
-      Outcome(model).addGlobalEvents(SetBeltSpeed(-100), SetFactory(on = true))
-    case KeyboardEvent.KeyDown(Key.KEY_P) => // temp
-      Outcome(model).addGlobalEvents(CollectPart(Part.random(context.dice)))
+      Outcome(model).addGlobalEvents(AddTask(Scripts.Intro))
     case KeyboardEvent.KeyDown(Key.KEY_M) => // temp
       println(model)
       Outcome(model)
-    case MouseEvent.Click(x, y) => Selection.select(model, x, y)
-    case SetBeltSpeed(v)        => Outcome(model.copy(beltSpeed = v))
-    case SetFactory(on)         => Outcome(model.copy(factory = model.factory.copy(on = on)))
-    case CollectPart(p)         => Outcome(model.copy(parts = p :: model.parts))
-    case AddTask(t)             => Outcome(model.copy(tasks = t :: model.tasks))
+
+    case MouseEvent.Click(x, y) =>
+      if model.selectionOn then Selection.select(model, x, y)
+      else Outcome(model)
+
+    case SetBeltSpeed(v) => Outcome(model.copy(beltSpeed = v))
+    case AddTask(t)      => Outcome(model.copy(tasks = t :: model.tasks))
     case FrameTick =>
       Outcome(model)
         .flatMap(Junk.update(_, context.delta))
@@ -48,20 +49,22 @@ object GameScene extends Scene[GameData, Model, Unit]:
 
   object LayerKey:
     val background = BindingKey("background")
-    val ui         = BindingKey("ui")
     val belts      = BindingKey("belts")
     val junk       = BindingKey("junk")
+    val ui         = BindingKey("ui")
+    val dialog     = BindingKey("dialog")
 
   val baseScene = SceneUpdateFragment(
     Layer(LayerKey.background, Background.nodes),
     Layer(LayerKey.belts),
     Layer(LayerKey.junk),
-    Layer(LayerKey.ui)
+    Layer(LayerKey.ui),
+    Layer(LayerKey.dialog)
   )
 
   def present(c: FrameContext[GameData], m: Model, vm: Unit): Outcome[SceneUpdateFragment] =
     Outcome {
-      baseScene |+| Inventory.scene(c, m, vm) |+| Junk.scene(c, m, vm)
+      baseScene |+| Inventory.scene(c, m, vm) |+| Junk.scene(c, m, vm) |+| Dialog.scene(c, m, vm)
     }
 
 end GameScene

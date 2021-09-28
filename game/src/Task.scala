@@ -78,6 +78,27 @@ object Task:
       if nextElapsed >= duration then Complete(nextElapsed - duration, nextModel)
       else Continue(copy(elapsed = nextElapsed), nextModel)
 
+  // Alter the model over time with the help of an interpolated value.
+  case class InterpolateE(
+      duration: Seconds,
+      interp: Interpolation,
+      f: (Double, Model) => (Model, List[GlobalEvent]),
+      elapsed: Seconds = Seconds.zero
+  ) extends Task:
+    def update(model: Model, delta: Seconds)(using FrameContext[GameData]) =
+      val nextElapsed             = elapsed + delta
+      val alpha                   = (nextElapsed / duration).toDouble.min(1.0)
+      val (nextModel, nextEvents) = f(interp(alpha), model)
+      if nextElapsed >= duration then Complete(nextElapsed - duration, nextModel, nextEvents)
+      else Continue(copy(elapsed = nextElapsed), nextModel, nextEvents)
+
+  // Simply wait for a click to be registered, then continue.
+  case object WaitForClick extends Task:
+    def update(model: Model, delta: Seconds)(using FrameContext[GameData]) =
+      val click = summon[FrameContext[GameData]].inputState.mouse.mousePressed
+      if click then Complete(delta, model)
+      else Continue(this, model)
+
   // Run tasks in sequence.
   case class Sequence(taskSequence: List[Task]) extends Task:
     // Each update, run as many tasks in sequence as we can until:

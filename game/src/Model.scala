@@ -6,8 +6,11 @@ case class Model(
     beltSpeed: Double = 0,
     parts: List[Part] = Nil,
     junk: List[Junk] = Nil,
+    factoryOn: Boolean = false,
     factory: JunkFactory = JunkFactory.initial,
+    selectionOn: Boolean = false,
     selected: Selection = Selection.Empty,
+    dialog: Dialog = Dialog.None,
     tasks: List[Task] = Nil
 )
 
@@ -20,6 +23,8 @@ object Model:
 //     Junk(JunkId(3), Some(Part.Head), 300, 475, true)
 //   )
 // )
+
+end Model
 
 trait Part:
   val graphic: Graphic[Material.Bitmap]
