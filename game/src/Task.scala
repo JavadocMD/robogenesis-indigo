@@ -1,7 +1,9 @@
 package game
 
 import indigo._
+
 import scala.annotation.tailrec
+
 import Interpolate.Interpolation
 
 trait Task:
@@ -127,5 +129,27 @@ object Task:
 
   object Sequence:
     def apply(ts: Task*): Sequence = Sequence(ts.toList)
+
+  case class Parallel(tasks: List[Task]) extends Task:
+    def update(model0: Model, delta0: Seconds)(using FrameContext[GameData]) =
+      var accModel  = model0
+      var maxDelta  = 0.0
+      var nextTasks = List.empty[Task]
+      var events    = List.empty[GlobalEvent]
+      for curr <- tasks do
+        curr.update(accModel, delta0) match
+          case Continue(t, m, es) =>
+            accModel = m
+            nextTasks ::= t
+            events = es ::: events
+          case Complete(d, m, es) =>
+            accModel = m
+            events = es ::: events
+            maxDelta = math.max(maxDelta, d.toDouble)
+      if nextTasks.isEmpty then Complete(Seconds(maxDelta), accModel, events)
+      else Continue(copy(tasks = nextTasks), accModel, events)
+
+  object Parallel:
+    def apply(ts: Task*): Parallel = Parallel(ts.toList)
 
 end Task

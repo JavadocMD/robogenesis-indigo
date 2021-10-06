@@ -1,9 +1,9 @@
 package game
 
-import indigo._
 import game.Dialog.Actor
 import game.Dialog.Tasks as D
 import game.Task as T
+import indigo._
 
 object Scripts:
 
@@ -17,8 +17,10 @@ object Scripts:
   )
 
   val StartConveyor = T.Sequence(
-    AlarmSound,
-    D.turnOnTheLights(Seconds(3.0)), // TODO: parallel
+    T.Parallel(
+      AlarmSound,
+      D.turnOnTheLights(Seconds(3.0))
+    ),
     T.Event(Assets.machine.play),
     T.InterpolateE(
       Seconds(2.0),
@@ -33,8 +35,10 @@ object Scripts:
 
   val StopConveyor = T.Sequence(
     T.Then(_.copy(factoryOn = false, selectionOn = false)),
-    AlarmSound,
-    D.turnOffTheLights(Seconds(3.0)), // TODO: parallel
+    T.Parallel(
+      AlarmSound,
+      D.turnOffTheLights(Seconds(3.0))
+    ),
     T.Event(Assets.machine.play),
     T.InterpolateE(
       Seconds(2.0),
