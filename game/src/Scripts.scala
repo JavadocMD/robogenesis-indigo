@@ -55,13 +55,15 @@ object Scripts:
     T.Sequence(
       D.startDialog,
       D.speak("You there, wake up!\n\n(click to continue...)"),
-      D.speak("Can't you see there's junk to sort?\n\n*sigh* You do remember why you're here, don't you?"),
-      D.speak("Robogenitors like yourself are tasked with sorting through these scrap piles for useful robot parts."),
+      D.speak("Can't you see there's junk to sort?\n\n*sigh* You do remember why you're here,\n\ndon't you?"),
       D.speak(
-        "Assemble a battle bot. Send it to the front lines.\n\nIf you can manage this, maybe -- just maybe -- we will live to see another day."
+        "Robogenitors like yourself are tasked\n\nwith sorting through these scrap piles\n\nfor useful robot parts."
       ),
       D.speak(
-        "I shouldn't have to tell you how valuable these Battle CPUs are, but just so we're clear, let me say this slowly:\n\nEach. Robogenitor. Gets. ONE."
+        "Assemble a battle bot.\n\nSend it to the front lines.\n\nIf you can manage this,\n\nmaybe -- just maybe --\n\nwe will live to see another day."
+      ),
+      D.speak(
+        "I shouldn't have to tell you how\n\nvaluable these Battle CPUs are,\n\nbut just so we're clear,\n\nlet me say this slowly:\n\nEach. Robogenitor. Gets. ONE."
       ),
       D.speak("Don't waste it.\n\nYour people are counting on you.\n\nNow get to work!"),
       D.endDialog

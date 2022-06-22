@@ -85,17 +85,24 @@ object Dialog:
       case Dialog.Line(actor, text)          => drawSpeech(actor, text, 0, 1.0)
 
   val lime_35         = RGBA.fromHexString("daffce").withAlpha(0.35)
-  val bubble          = Shape.Box(Rectangle(0, 0, 800, 350), Fill.Color(lime_35))
+  val bubble          = Shape.Box(Rectangle(0, 0, vw, 350), Fill.Color(lime_35))
   val shadeMaxOpacity = 0.6
   def shadeBox(alpha: Double) =
     val color = RGBA.Black.withAlpha(shadeMaxOpacity * alpha)
     Shape.Box(Rectangle(0, 0, vw, vh), Fill.Color(color))
 
   def drawSpeech(actor: Actor, text: String, offset: Int, shade: Double) =
-    // TODO: render text!
     var nodes = List(
-      bubble.moveTo(200 + offset, 75),
-      actor.graphic.moveTo(0 - offset, 0)
+      bubble.moveTo(0 + offset, 75),
+      actor.graphic.moveTo(0 - offset, 0),
+      Text(
+        text,
+        x = 525 + offset,
+        y = 150,
+        depth = 1,
+        fontKey = Assets.fontBpDotsMinus.fontKey,
+        material = Assets.fontBpDotsMinus.img.material
+      )
     )
     if (shade > 0) {
       nodes ::= shadeBox(shade)

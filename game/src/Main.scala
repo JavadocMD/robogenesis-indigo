@@ -53,7 +53,12 @@ object Main extends IndigoGame[BootData, GameData, Model, Unit]:
 
   def setup(bootData: BootData, assetCollection: AssetCollection, dice: Dice): Outcome[Startup[GameData]] = Outcome {
     val data = GameData(bootData.viewport)
-    Startup.Success(data)
+
+    val result =
+      for bpDotsMinus <- Assets.fontBpDotsMinus.fontInfo(assetCollection)
+      yield Startup.Success(data).addFonts(bpDotsMinus)
+
+    result getOrElse Startup.Failure("Failed to load font information.")
   }
 
   def updateModel(context: FrameContext[GameData], model: Model): GlobalEvent => Outcome[Model] =

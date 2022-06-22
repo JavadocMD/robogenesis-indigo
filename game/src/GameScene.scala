@@ -64,7 +64,10 @@ object GameScene extends Scene[GameData, Model, Unit]:
 
   def present(c: FrameContext[GameData], m: Model, vm: Unit): Outcome[SceneUpdateFragment] =
     Outcome {
-      baseScene |+| Inventory.scene(c, m, vm) |+| Junk.scene(c, m, vm) |+| Dialog.scene(c, m, vm)
+      baseScene
+        |+| Inventory.scene(c, m, vm)
+        |+| Junk.scene(c, m, vm)
+        |+| Dialog.scene(c, m, vm)
     }
 
 end GameScene
